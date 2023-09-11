@@ -2,34 +2,35 @@ import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import {api } from "y/utils/api";
-import type { RouterOutputs} from "y/utils/api";
+import { api } from "y/utils/api";
+import type { RouterOutputs } from "y/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { LoadingPage, LoadingSpinner } from "y/components/loading";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { PageLayout } from "y/components/layout";
 dayjs.extend(relativeTime);
 
 
 const CreatePostWizard = () => {
   const { user } = useUser();
 
-  const [input,setInput] = useState("");
+  const [input, setInput] = useState("");
 
   const ctx = api.useContext();
 
-  const {mutate, isLoading: isPosting } = api.posts.create.useMutation({
-    onSuccess: ()=>{
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
       setInput("");
       void ctx.posts.getAll.invalidate();
     },
-    onError:(e)=>{
+    onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;
-      if(errorMessage && errorMessage[0]){
+      if (errorMessage && errorMessage[0]) {
         toast.error(errorMessage[0]);
-      }else{
+      } else {
         toast.error("Failed to post please try again later");
       };
     }
@@ -37,31 +38,31 @@ const CreatePostWizard = () => {
 
   if (!user) return null;
   return <div className="flex gap-3 w-full">
-    <Image 
-    src={user.profileImageUrl} 
-    alt="Profile image" 
-    className="w-14 h-14 rounded-full"
-    width={56}
-    height={56} 
+    <Image
+      src={user.profileImageUrl}
+      alt="Profile image"
+      className="w-14 h-14 rounded-full"
+      width={56}
+      height={56}
     />
-    <input  
-      placeholder="Type some emojis!" 
-      className="bg-transparent grow outline-none" 
+    <input
+      placeholder="Type some emojis!"
+      className="bg-transparent grow outline-none"
       type="text"
       value={input}
-      onChange={(e)=>setInput(e.target.value)}
-      disabled = {isPosting}
-      onKeyDown={(e)=>{
-        if(e.key ==="Enter"){
+      onChange={(e) => setInput(e.target.value)}
+      disabled={isPosting}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
           e.preventDefault();
-          if( input !== ""){
-            mutate({content: input});
+          if (input !== "") {
+            mutate({ content: input });
           }
         }
       }}
-     />
-      { input !== "" && !isPosting && (<button onClick={()=>mutate({content:input})} >Post</button>)}
-      {isPosting && <div className="flex justtify-center items-center"><LoadingSpinner size={20}/></div>}
+    />
+    {input !== "" && !isPosting && (<button onClick={() => mutate({ content: input })} >Post</button>)}
+    {isPosting && <div className="flex justtify-center items-center"><LoadingSpinner size={20} /></div>}
   </div>
 }
 
@@ -69,24 +70,24 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
-  
+
   return (
     <div className="p-4 border-b border-slate-400 flex gap-3" key={props.post.id}>
-      <Image 
-      className="w-14 h-14 rounded-full" 
-      src={author.profilepicture} 
-      alt={`@${author.username}'s profile pciture`}
-      width={56}
-      height={56}
-       />
+      <Image
+        className="w-14 h-14 rounded-full"
+        src={author.profilepicture}
+        alt={`@${author.username}'s profile pciture`}
+        width={56}
+        height={56}
+      />
       <div className="flex flex-col">
         <div className="flex gap-1 text-slate-300">
-          <Link href={`/@${author.username}`}> 
+          <Link href={`/@${author.username}`}>
             <span>  {`@${author.username!}`}</span>
-            </Link>
-            <Link href={`/post/${post.id}`}>
-            <span className="font-thin">{` · ${dayjs(post.createdAt).fromNow() }`}</span>
-            </Link>
+          </Link>
+          <Link href={`/post/${post.id}`}>
+            <span className="font-thin">{` · ${dayjs(post.createdAt).fromNow()}`}</span>
+          </Link>
         </div>
         <span className="text-2xl">  {post.content}</span>
       </div>
@@ -117,36 +118,27 @@ const Feed = () => {
 
 
 const Home: NextPage = () => {
-  const {user, isLoaded: userLoaded,isSignedIn} = useUser();
+  const { user, isLoaded: userLoaded, isSignedIn } = useUser();
 
   //Start Fetching asap
   api.posts.getAll.useQuery();
 
   //Return Emprty div if user isn't loaded yer
-  if (!userLoaded ) return <div></div>;
+  if (!userLoaded) return <div></div>;
 
 
   return (
-    <>
-      <Head>
-        <title>Create T3 App</title>
-        <meta name="description" content="Generated by create-t3-app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="flex h-screen justify-center ">
-        <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
-          <div className="border-b border-slate-400 p-4 flex">
-            {!isSignedIn && (
-              <div className="flex justify-center">
-                <SignInButton />
-              </div>
-            )}
-            {!!isSignedIn && <CreatePostWizard />}
+    <PageLayout>
+      <div className="flex border-b border-slate-400 p-4">
+        {!isSignedIn && (
+          <div className="flex justify-center">
+            <SignInButton />
           </div>
-              <Feed />
-        </div>
-      </main>
-    </>
+        )}
+        {!!isSignedIn && <CreatePostWizard />}
+      </div>
+      <Feed />
+    </PageLayout >
   );
 }
 
