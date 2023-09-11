@@ -6,8 +6,7 @@ import { appRouter } from "y/server/api/root";
 import { prisma } from "y/server/db";
 import superjson from "superjson";
 import { PageLayout } from "y/components/layout";
-import { createProxySSGHelpers } from '@trpc/react-query/ssg';
-
+import { createServerSideHelpers } from "@trpc/react-query/dist/server/ssgProxy";
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
 
@@ -29,7 +28,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
 }
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  const ssg = createProxySSGHelpers ({
+  const ssg = createServerSideHelpers ({
     router: appRouter,
     ctx: {prisma , userId: null},
     transformer: superjson
