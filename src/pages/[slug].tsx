@@ -7,8 +7,9 @@ import { prisma } from "y/server/db";
 import superjson from "superjson";
 import { PageLayout } from "y/components/layout";
 import { createServerSideHelpers } from '@trpc/react-query/server';
+import Image from "next/image";
 
-const ProfilePage = (  props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const ProfilePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { username } = props;
   const { data } = api.profile.getUserByUsername.useQuery({
     username,
@@ -21,7 +22,20 @@ const ProfilePage = (  props: InferGetServerSidePropsType<typeof getServerSidePr
         <title>{data.username}</title>
       </Head>
       <PageLayout>
-        <div>{data.username}</div>
+        <div className="h-36 bg-slate-600 relative">
+          <Image
+            src={data.profilepicture}
+            alt={`${data.username ?? ""}'s profile pic`}
+            width={128}
+            height={128}
+
+            className="absolute bottom-0 left-0 -mb-[64px] rounded-full border-4 border-black ml-4 bg-black"
+          />
+        </div>
+        <div className="h-[64px]"></div>
+        <div className="p-4 text-2xl font-bold"> {`@${data.username ?? ""}`} </div>
+        <div   className="border-b border-slate-400 w-full"></div>
+
       </PageLayout>
     </>
   );
@@ -54,19 +68,19 @@ export async function getServerSideProps(
 ) {
   const helpers = createServerSideHelpers({
     router: appRouter,
-    ctx: {prisma , userId: null},
+    ctx: { prisma, userId: null },
     transformer: superjson,
   });
-   const slug = context.params?.slug;
+  const slug = context.params?.slug;
 
-     if (typeof slug !== "string") throw new Error("No slug");
+  if (typeof slug !== "string") throw new Error("No slug");
 
   const username = slug.replace("@", "");
   /*
    * Prefetching the `post.byId` query.
    * `prefetch` does not return the result and never throws - if you need that behavior, use `fetch` instead.
    */
-  await helpers.profile.getUserByUsername.prefetch({ username});
+  await helpers.profile.getUserByUsername.prefetch({ username });
   // Make sure to return { props: { trpcState: helpers.dehydrate() } }
   return {
     props: {
