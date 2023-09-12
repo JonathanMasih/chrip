@@ -1,6 +1,5 @@
-import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import {  SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { NextPage } from "next";
-import Head from "next/head";
 import Link from "next/link";
 import { api } from "y/utils/api";
 import type { RouterOutputs } from "y/utils/api";
@@ -28,7 +27,7 @@ const CreatePostWizard = () => {
     },
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;
-      if (errorMessage && errorMessage[0]) {
+      if (errorMessage && errorMessage[0] === null) {
         toast.error(errorMessage[0]);
       } else {
         toast.error("Failed to post please try again later");
