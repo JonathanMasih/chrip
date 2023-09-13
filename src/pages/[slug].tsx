@@ -8,6 +8,29 @@ import superjson from "superjson";
 import { PageLayout } from "y/components/layout";
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import Image from "next/image";
+import { LoadingPage } from "y/components/loading";
+import { PostView } from "y/components/postview";
+
+const ProfileFeed = (props:{userId:string}) =>{
+
+  const {data,isLoading} = api.posts.getPostsByUserId.useQuery({
+    userId:props.userId,
+  })
+
+  if(isLoading)return <LoadingPage />;
+
+  if(!data || data.length === 0)return<div>User has not posted</div>;
+
+
+  return(
+    <div className="flex flex-col">
+      {data.map((fullPost)=>(
+        <PostView {...(fullPost)}key={fullPost.post.id} />
+      ))}
+    </div>
+  )
+
+}
 
 const ProfilePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { username } = props;
@@ -35,7 +58,7 @@ const ProfilePage = (props: InferGetServerSidePropsType<typeof getServerSideProp
         <div className="h-[64px]"></div>
         <div className="p-4 text-2xl font-bold"> {`@${data.username ?? ""}`} </div>
         <div   className="border-b border-slate-400 w-full"></div>
-
+        <ProfileFeed userId={data.id}/>
       </PageLayout>
     </>
   );
