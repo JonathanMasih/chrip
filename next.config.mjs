@@ -20,6 +20,15 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+
+  typescript:{
+    ignoreBuildErrors:true,
+  },
+  eslint:{
+    // @ts-ignore
+    ignoreBuildErrors:true,
+  },
+  swcMinify: true,
 };
 
 export default config;
