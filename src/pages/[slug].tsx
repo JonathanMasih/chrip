@@ -10,6 +10,7 @@ import { createServerSideHelpers } from '@trpc/react-query/server';
 import Image from "next/image";
 import { LoadingPage } from "y/components/loading";
 import { PostView } from "y/components/postview";
+import { generateSSGHelper } from "y/server/helpers/sssHelper/ssgHelper";
 
 const ProfileFeed = (props:{userId:string}) =>{
 
@@ -89,11 +90,7 @@ const ProfilePage = (props: InferGetServerSidePropsType<typeof getServerSideProp
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{ slug: string }>,
 ) {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: { prisma, userId: null },
-    transformer: superjson,
-  });
+  const ssg = generateSSGHelper();
   const slug = context.params?.slug;
 
   if (typeof slug !== "string") throw new Error("No slug");
@@ -103,11 +100,11 @@ export async function getServerSideProps(
    * Prefetching the `post.byId` query.
    * `prefetch` does not return the result and never throws - if you need that behavior, use `fetch` instead.
    */
-  await helpers.profile.getUserByUsername.prefetch({ username });
+  await ssg.profile.getUserByUsername.prefetch({ username });
   // Make sure to return { props: { trpcState: helpers.dehydrate() } }
   return {
     props: {
-      trpcState: helpers.dehydrate(),
+      trpcState: ssg.dehydrate(),
       username,
     },
   };
